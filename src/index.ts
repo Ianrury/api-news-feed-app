@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import postRoutes from './routes/postRoutes';
 import followRoutes from './routes/followRoutes';
+import serverless from 'serverless-http';
 
 dotenv.config();
 
@@ -12,7 +13,6 @@ const app = express();
 // CORS configuration for production
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://your-frontend-app.vercel.app', // Ganti dengan URL frontend Vercel Anda nanti
   process.env.FRONTEND_URL || ''
 ];
 
@@ -61,5 +61,5 @@ if (process.env.NODE_ENV !== 'production') {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
   });
 }
-
-export default app;
+const handler = serverless(app);
+export default handler;
