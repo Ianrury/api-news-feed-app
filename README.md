@@ -1,142 +1,380 @@
-# News Feed App Backend
+# Dokumentasi Backend News Feed App
 
-This is the backend service for the News Feed application, built with Node.js, Express, TypeScript, and Prisma with PostgreSQL database.
+Aplikasi backend untuk News Feed, dibangun menggunakan Node.js, Express, TypeScript, dan Prisma dengan database PostgreSQL.
 
-## Features
+## Daftar Isi
+- [Fitur Utama](#fitur-utama)
+- [Teknologi yang Digunakan](#teknologi-yang-digunakan)
+- [Prasyarat](#prasyarat)
+- [Panduan Instalasi](#panduan-instalasi)
+- [Struktur Project](#struktur-project)
+- [Dokumentasi API](#dokumentasi-api)
+- [Skema Database](#skema-database)
+- [Keamanan](#keamanan)
+- [Penanganan Error](#penanganan-error)
 
-- User authentication (register, login)
-- Post management (create, read)
-- Follow system (follow/unfollow users)
-- News feed generation based on followed users
+## Fitur Utama
 
-## Tech Stack
+- Sistem Autentikasi
+  - Registrasi pengguna baru
+  - Login pengguna
+  - Proteksi rute menggunakan JWT
+- Manajemen Postingan
+  - Membuat postingan baru
+  - Membaca postingan
+  - Mendapatkan feed dari pengguna yang diikuti
+- Sistem Follow
+  - Follow pengguna lain
+  - Unfollow pengguna
+  - Melihat daftar follower
+  - Melihat daftar following
 
-- **Runtime**: Node.js
+## Teknologi yang Digunakan
+
+- **Runtime Environment**: Node.js
 - **Framework**: Express.js
-- **Language**: TypeScript
+- **Bahasa Pemrograman**: TypeScript
 - **ORM**: Prisma
 - **Database**: PostgreSQL
-- **Authentication**: JWT (JSON Web Tokens)
+- **Autentikasi**: JWT (JSON Web Tokens)
+- **Package Manager**: npm
+- **Development Tools**: 
+  - nodemon (hot reload)
+  - tsx (TypeScript execution)
+  - bcrypt (password hashing)
 
-## Prerequisites
+## Prasyarat
 
-Before running this project, make sure you have:
+Sebelum menginstall project ini, pastikan Anda telah menginstall:
 
-- Node.js (v16 or higher)
-- PostgreSQL database
-- npm or yarn package manager
+1. Node.js (versi 16 atau lebih tinggi)
+2. PostgreSQL (versi 12 atau lebih tinggi)
+3. npm (Node Package Manager)
+4. Git
 
-## Installation
+## Panduan Instalasi
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Ianrury/api-news-feed-app.git
-   cd api-news-feed-app/backend
-   ```
+### 1. Clone Repository
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+```bash
+# Clone repository dari GitHub
+git clone https://github.com/Ianrury/api-news-feed-app.git
 
-3. Create a `.env` file in the root directory with the following content:
-   ```
-   DATABASE_URL="postgresql://username:password@localhost:5432/news_feed_db"
-   JWT_SECRET="your-jwt-secret"
-   ```
+# Masuk ke direktori backend
+cd api-news-feed-app/backend
+```
 
-4. Run database migrations:
-   ```bash
-   npx prisma migrate dev
-   ```
+### 2. Install Dependencies
 
-## Available Scripts
+```bash
+# Install semua dependencies yang diperlukan
+npm install
+```
 
-- `npm run dev` - Start the development server with hot-reload
-- `npm run build` - Build the TypeScript code
-- `npm start` - Start the production server
+### 3. Konfigurasi Environment
 
-## API Endpoints
+Buat file `.env` di root directory dengan isi sebagai berikut:
 
-### Authentication
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login user
+```env
+# Database Configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/news_feed_db"
 
-### Posts
-- `GET /posts` - Get all posts for the news feed
-- `POST /posts` - Create a new post
-- `GET /posts/:userId` - Get posts from a specific user
+# JWT Configuration
+JWT_SECRET="ganti-dengan-secret-key-anda"
 
-### Follow System
-- `POST /follow/:userId` - Follow a user
-- `DELETE /follow/:userId` - Unfollow a user
-- `GET /follow/followers` - Get list of followers
-- `GET /follow/following` - Get list of users being followed
+# Server Configuration (optional)
+PORT=3000
+```
 
-## Database Schema
+### 4. Setup Database
 
-### User
+```bash
+# Jalankan migrasi database
+npx prisma migrate dev
+
+# Generate Prisma Client
+npx prisma generate
+```
+
+### 5. Menjalankan Aplikasi
+
+```bash
+# Mode Development (dengan hot reload)
+npm run dev
+
+# Mode Production
+npm run build  # Build aplikasi
+npm start      # Jalankan aplikasi
+```
+
+## Struktur Project
+
+```
+backend/
+├── prisma/                 # Konfigurasi dan migrasi Prisma
+│   ├── schema.prisma      # Skema database
+│   └── migrations/        # File migrasi database
+├── src/
+│   ├── controllers/       # Logic handler untuk setiap route
+│   │   ├── authController.ts
+│   │   ├── postController.ts
+│   │   └── followController.ts
+│   ├── middleware/        # Middleware
+│   │   └── auth.ts       # Middleware autentikasi
+│   ├── routes/           # Definisi route API
+│   │   ├── authRoutes.ts
+│   │   ├── postRoutes.ts
+│   │   └── followRoutes.ts
+│   ├── utils/            # Utility functions
+│   │   └── prisma.ts     # Konfigurasi Prisma client
+│   └── index.ts          # Entry point aplikasi
+├── package.json          # Dependencies dan scripts
+└── tsconfig.json        # Konfigurasi TypeScript
+```
+
+## Dokumentasi API
+
+### Autentikasi
+
+#### Register Pengguna Baru
+- **URL**: `/auth/register`
+- **Method**: `POST`
+- **Body**:
+  ```json
+  {
+    "username": "string",
+    "password": "string"
+  }
+  ```
+- **Response Success**:
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "id": "number",
+      "username": "string",
+      "token": "string"
+    }
+  }
+  ```
+
+#### Login Pengguna
+- **URL**: `/auth/login`
+- **Method**: `POST`
+- **Body**:
+  ```json
+  {
+    "username": "string",
+    "password": "string"
+  }
+  ```
+- **Response Success**:
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "token": "string"
+    }
+  }
+  ```
+
+### Postingan
+
+#### Membuat Postingan Baru
+- **URL**: `/posts`
+- **Method**: `POST`
+- **Headers**: 
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Body**:
+  ```json
+  {
+    "content": "string"
+  }
+  ```
+- **Response Success**:
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "id": "number",
+      "content": "string",
+      "createdAt": "date",
+      "userId": "number"
+    }
+  }
+  ```
+
+#### Mendapatkan Feed
+- **URL**: `/posts`
+- **Method**: `GET`
+- **Headers**: 
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Query Parameters**:
+  - `page` (optional): nomor halaman
+  - `limit` (optional): jumlah item per halaman
+- **Response Success**:
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "posts": [
+        {
+          "id": "number",
+          "content": "string",
+          "createdAt": "date",
+          "user": {
+            "id": "number",
+            "username": "string"
+          }
+        }
+      ],
+      "pagination": {
+        "currentPage": "number",
+        "totalPages": "number",
+        "totalItems": "number"
+      }
+    }
+  }
+  ```
+
+### Sistem Follow
+
+#### Follow Pengguna
+- **URL**: `/follow/:userId`
+- **Method**: `POST`
+- **Headers**: 
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Response Success**:
+  ```json
+  {
+    "status": "success",
+    "message": "Berhasil follow pengguna"
+  }
+  ```
+
+#### Unfollow Pengguna
+- **URL**: `/follow/:userId`
+- **Method**: `DELETE`
+- **Headers**: 
+  ```
+  Authorization: Bearer <token>
+  ```
+- **Response Success**:
+  ```json
+  {
+    "status": "success",
+    "message": "Berhasil unfollow pengguna"
+  }
+  ```
+
+## Skema Database
+
+### Tabel Users
 ```prisma
 model User {
   id           Int       @id @default(autoincrement())
   username     String    @unique
-  passwordHash String
-  createdAt    DateTime  @default(now())
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  
+  // Relasi
   posts        Post[]
   followers    Follow[]  @relation("followee")
   following    Follow[]  @relation("follower")
+
+  @@map("users")
 }
 ```
 
-### Post
+### Tabel Posts
 ```prisma
 model Post {
   id        Int      @id @default(autoincrement())
-  userId    Int
+  userId    Int      @map("user_id")
   content   String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relasi
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("posts")
 }
 ```
 
-### Follow
+### Tabel Follows
 ```prisma
 model Follow {
-  followerId Int
-  followeeId Int
-  createdAt  DateTime @default(now())
-  follower   User     @relation("follower")
-  followee   User     @relation("followee")
+  followerId Int      @map("follower_id")
+  followeeId Int      @map("followee_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  // Relasi
+  follower   User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followee   User     @relation("followee", fields: [followeeId], references: [id], onDelete: Cascade)
+
   @@id([followerId, followeeId])
+  @@map("follows")
 }
 ```
 
-## Error Handling
+## Keamanan
 
-The API uses standard HTTP status codes:
-- 200: Success
-- 201: Created
-- 400: Bad Request
-- 401: Unauthorized
-- 403: Forbidden
-- 404: Not Found
+1. **Password Hashing**
+   - Menggunakan bcrypt untuk hashing password
+   - Salt rounds: 10
+
+2. **Autentikasi**
+   - Menggunakan JWT (JSON Web Token)
+   - Token expires dalam 24 jam
+   - Token validation di setiap protected route
+
+3. **Validasi Input**
+   - Validasi username (minimum 3 karakter)
+   - Validasi password (minimum 6 karakter)
+   - Sanitasi input untuk mencegah XSS
+
+4. **Database Security**
+   - Menggunakan Prisma ORM untuk mencegah SQL injection
+   - Cascade delete untuk menjaga integritas data
+
+## Penanganan Error
+
+### Kode Status HTTP
+- 200: Sukses
+- 201: Berhasil membuat data baru
+- 400: Bad Request (input tidak valid)
+- 401: Unauthorized (token tidak valid/expired)
+- 403: Forbidden (tidak memiliki akses)
+- 404: Not Found (data tidak ditemukan)
 - 500: Internal Server Error
 
-## Security
+### Format Response Error
+```json
+{
+  "status": "error",
+  "message": "Pesan error yang informatif",
+  "errors": [
+    "Detail error (optional)"
+  ]
+}
+```
 
-- Password hashing using bcrypt
-- JWT-based authentication
-- Request validation
-- Protected routes using middleware
+## Pengembangan
 
-## Contributing
+Untuk berkontribusi pada project ini:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Fork repository
+2. Buat branch fitur baru (`git checkout -b fitur/nama-fitur`)
+3. Commit perubahan (`git commit -m 'Menambahkan fitur baru'`)
+4. Push ke branch (`git push origin fitur/nama-fitur`)
+5. Buat Pull Request
 
-## License
+## Lisensi
 
-This project is licensed under the ISC License.
+Project ini dilisensikan di bawah Lisensi ISC.
