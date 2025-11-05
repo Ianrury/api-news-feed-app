@@ -8,28 +8,58 @@ import followRoutes from './routes/followRoutes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-const corsOptions = {
-  origin: 'http://localhost:5173', 
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-};
+// CORS configuration for production
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://your-frontend-app.vercel.app', // Ganti dengan URL frontend Vercel Anda nanti
+  process.env.FRONTEND_URL || ''
+];
 
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
 
 app.use(express.json());
 
+// Routes
 app.use('/api', authRoutes);
 app.use('/api', postRoutes);
 app.use('/api', followRoutes);
 
+// Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
+  res.json({ status: 'OK', message: 'Server is running', timestamp: new Date() });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'News Feed API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/register, /api/login',
+      posts: '/api/posts, /api/feed',
+      follow: '/api/users, /api/follow/:userid'
+    }
+  });
 });
+
+const PORT = process.env.PORT || 3000;
+
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
